@@ -22,6 +22,15 @@ function hostnameOf(u) {
   try { return new URL(u).hostname } catch (e) { return String(u).slice(0, 40) }
 }
 
+// Loose normalization so near-identical claim phrasing across sources (e.g. "SOC 2 Type II" vs
+// "SOC2 Type 2 certified") collapses to the same dedup key instead of burning separate verify budget.
+function normalizeClaimKey(claim) {
+  return String(claim || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim()
+}
+
 const SEARCH_SCHEMA = {
   type: 'object',
   properties: {
@@ -148,7 +157,7 @@ extracted.forEach((r, i) => {
   if (!r) return
   const src = toFetch[i]
   for (const c of (r.claims || [])) {
-    const key = (c.claim || '').trim().toLowerCase()
+    const key = normalizeClaimKey(c.claim)
     if (!key || seenClaimText.has(key)) continue
     seenClaimText.add(key)
     allClaims.push({ ...c, source: src.url, sourceQuality: r.sourceQuality })

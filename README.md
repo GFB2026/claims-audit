@@ -29,6 +29,13 @@ That's the shape of the output: specific claims, specific verdicts, specific sou
 - This is a [Claude Code](https://claude.com/claude-code) **Workflow script** — it runs inside Claude Code's multi-agent orchestration runtime, not as a standalone CLI/binary. You need Claude Code to run it.
 - It audits **public claims only**. It is not a SOC 2 report review, a signed security questionnaire, a reference call, or contract-term legal review — it tells you where to focus those, and sometimes surfaces a reason to push harder before signing.
 - "Unverified" does not mean "false." It means no independent source could confirm it at the time of the audit — treat it as a question to ask directly, not a settled negative.
+- This is compute, not a headcount discount, and it isn't free. A full run issues roughly 5 search calls, up to ~25 fetch calls, and up to 90 claims × 3 adversarial verify calls (capped — see below) plus one synthesis call: on the order of a few hundred model calls per audit. Budget API cost accordingly, not just the ~1 hour wall-clock time.
+- Verification is capped at the 90 highest-priority claims (security & compliance and company-viability claims first). On a claims-heavy vendor, lower-priority claims past that cap are dropped and logged, not silently ignored — but they are not in the final report.
+
+## Requirements
+
+- [Claude Code](https://claude.com/claude-code) with Workflow support (the `Workflow()`/`phase()`/`agent()`/`parallel()`/`pipeline()` runtime globals used by `workflows/vendor-claims-audit.js`).
+- WebSearch and WebFetch tool access enabled for the agent — the Search/Fetch/Verify phases depend on both.
 
 ## Try it
 
